@@ -9,12 +9,19 @@ const imageFixture = Buffer.from(
 let runtimeErrors: string[];
 let unexpectedRequests: string[];
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
   runtimeErrors = [];
   unexpectedRequests = [];
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") runtimeErrors.push(message.text());
+    // Chromium reports the deliberately navigated 404 document as a console
+    // resource error. Exclude only this annotated document; all other errors fail.
+    const expectedDocument404 = testInfo.annotations.some((annotation) =>
+      annotation.type === "expected-document-404" &&
+      message.location().url === `http://127.0.0.1:4173${annotation.description}` &&
+      message.text() === "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    );
+    if (message.type() === "error" && !expectedDocument404) runtimeErrors.push(message.text());
   });
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
@@ -38,9 +45,14 @@ test.afterEach(() => {
   expect(unexpectedRequests, "unexpected external requests").toEqual([]);
 });
 
-test("unknown routes return 404", async ({ request }) => {
-  const response = await request.get("/ci-smoke-missing-route");
-  expect(response.status()).toBe(404);
+test("unknown routes return 404", {
+  annotation: { type: "expected-document-404", description: "/ci-smoke-missing-route" },
+}, async ({ page }, testInfo) => {
+  const response = await page.goto("/ci-smoke-missing-route");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "404", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "This page could not be found.", exact: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("not-found.png"), fullPage: true, animations: "disabled" });
 });
 
 test("starter page hydrates and renders local artwork", async ({ page }, testInfo) => {
