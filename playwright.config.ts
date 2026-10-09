@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: "list",
   timeout: 30_000,
   globalTimeout: 180_000,
-  use: { baseURL: "http://127.0.0.1:4173", trace: "off" },
+  use: { baseURL: "http://127.0.0.1:4173", trace: "off", screenshot: "on" },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },

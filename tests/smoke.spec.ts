@@ -43,12 +43,13 @@ test("unknown routes return 404", async ({ request }) => {
   expect(response.status()).toBe(404);
 });
 
-test("starter page hydrates and renders local artwork", async ({ page }) => {
+test("starter page hydrates and renders local artwork", async ({ page }, testInfo) => {
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   await expect(page.getByText("Save and see your changes instantly.")).toBeVisible();
   await expect(page.getByRole("img", { name: "Next.js logo" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Read our docs" })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("homepage.png"), fullPage: true, animations: "disabled" });
   await page.reload();
   await expect(page.getByText("Save and see your changes instantly.")).toBeVisible();
 });
