@@ -6,12 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "biome lint . --error-on-warnings",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:smoke": "playwright test"
   },
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.2"
+    "next": "15.5.27"
   },
   "devDependencies": {
     "typescript": "^5",
@@ -19,6 +21,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "@playwright/test": "1.64.0",
+    "@biomejs/biome": "2.5.15"
+  },
+  "overrides": {
+    "postcss": "8.5.29"
   }
 }
